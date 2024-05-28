@@ -1,8 +1,8 @@
 import React from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Input, Link, Select, SelectItem } from "@nextui-org/react";
-import { MailIcon } from './MailIcon.jsx';
-import { LockIcon } from './LockIcon.jsx';
-import { Name } from "./Name.jsx";
+import { MailIcon } from '../icons/MailIcon.jsx';
+import { LockIcon } from '../icons/LockIcon.jsx';
+import { Name } from "../icons/Name.jsx";
 import { getClient } from "../../lib/client.jsx";
 import { gql } from "@apollo/client";
 
