@@ -25,8 +25,15 @@ export default function FormRegistro() {
   const handleDiasAtencionChange = (e) => {
     setDiasAtencion(new Set(e.target.value.split(",")));
   };
+  const validateFields = () => {
+    return nombre && apellido && correo && telefono && especialidad && idProfesional && consultorio && diasAtencion.size > 1 && horasAtencion && genero;
+  };
+
   const handleAddDoctor = async () => {
-    console.log(diasAtencion);
+    if (!validateFields()) {
+      alert("Por favor, complete todos los campos requeridos.");
+      return;
+    }
     try {
       const { data } = await getClient().mutate({
         mutation: gql`
@@ -54,13 +61,14 @@ export default function FormRegistro() {
           specialty: especialidad,
           professionalId: idProfesional,
           office: consultorio,
-          atentionDays: Array.from(diasAtencion).join(", "),
+          atentionDays: Array.from(diasAtencion),
           atentionHours: horasAtencion,
         }
       });
-      console.log('Doctor added:', data.addDoctor);
+      //console.log('Doctor added:', data.addDoctor);
       onOpenChange(false);
     } catch (error) {
+      console.log(Array.from(diasAtencion));
       console.error('Error adding doctor:', error);
     }
   };

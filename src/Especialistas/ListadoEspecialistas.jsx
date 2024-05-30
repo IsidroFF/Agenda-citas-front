@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { getClient } from "../lib/client.jsx";
-import { gql } from "@apollo/client";
+import { gql, useSubscription } from "@apollo/client";
 import {Card, CardHeader, CardBody, Image} from "@nextui-org/react";
 
 function Doctors() {
   const [doctors, setDoctors] = useState([]);
+  // const DOCTOR_CREATED = gql`
+  //   subscription DoctorCreated {
+  //     doctorCreated{
+  //       name
+  //       lastName
+  //       specialty
+  //       atentionHours
+  //       atentionDays
+  //     }
+  //   }
+  // `
+
+  // const {data, loading} = useSubscription(
+  //   DOCTOR_CREATED,
+  //   {
+  //     onData: (data)=>{
+  //       console.log(data);
+  //     }
+  //   }
+  // )
 
   useEffect(() => {
     async function fetchData() {
