@@ -3,9 +3,21 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDi
 import { MailIcon } from '../icons/MailIcon.jsx';
 import { LockIcon } from '../icons/LockIcon.jsx';
 import { Name } from "../icons/Name.jsx";
-import { getClient } from "../../lib/client.jsx";
-import { gql } from "@apollo/client";
+import { notification } from "antd";
+import { gql, useMutation } from "@apollo/client";
 
+
+const ADD_USER = gql`
+    mutation AddUser($name: String!, $email: String!, $password: String!, $age: Int!, $gender: String!) {
+      addUser(name: $name, email: $email, password: $password, age: $age, gender: $gender) {
+        age
+        email
+        gender
+        name
+        password
+      }
+    }
+  `
 
 export default function FormRegistro() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -14,42 +26,68 @@ export default function FormRegistro() {
   const [contra, setContra] = React.useState("");
   const [edad, setEdad] = React.useState("");
   const [genero, setGenero] = React.useState("");
+  const [api, contextHolder] = notification.useNotification();
+  const notifError = (type, content) => {
+    api[type]({
+      message: content,
+    });
+  };
+  const [addUser, { data }] = useMutation(ADD_USER);
 
   const handleSelectionChange = (e) => {
     setGenero(e.target.value);
   };
 
-  const handleAddUser = async () => {
+  const resetForm = () => {
+    // Restablecer todas las variables de estado a su estado inicial
+    setNombre("");
+    setCorreo("");
+    setContra("");
+    setEdad("");
+    setGenero("");
+  };
+
+  const handleAddUser = () => {
+    // Validar que la contraseña tenga al menos 6 caracteres
+    if (contra.length < 6) {
+      notifError('error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    // Validar que la edad esté dentro del rango válido
+    const edadNum = parseInt(edad);
+    if (isNaN(edadNum) || edadNum < 18 || edadNum > 100) {
+      notifError('error', 'La edad debe estar entre un rango válido');
+      return;
+    }
+
+    // Verificar que ningún campo sea una cadena vacía
+    if (!nombre.trim() || !correo.trim() || !contra.trim() || !edad.trim() || !genero.trim()) {
+      // Mostrar notificación de error si algún campo está vacío
+      notifError('error', 'Todos los campos son requeridos');
+      return;
+    }
     try {
-      const { data } = await getClient().mutate({
-        mutation: gql`
-        mutation AddUser($name: String!, $email: String!, $password: String!, $age: Int!, $gender: String!) {
-          addUser(name: $name, email: $email, password: $password, age: $age, gender: $gender) {
-            age
-            email
-            gender
-            name
-            password
-          }
-        }
-      `,
+      addUser({
         variables: {
-          name:nombre,
+          name: nombre,
           email: correo,
-          password:contra,
+          password: contra,
           age: parseInt(edad),
-          gender:genero
+          gender: genero
         }
-      });
-      console.log('User added:', data.addUser);
+      })
+      console.log('User added');
+      resetForm();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error adding user:', error);
+      //console.error('Error adding user:', error);
     }
   };
 
   return (
     <>
+      {contextHolder}
       <Button onPress={onOpen} color="primary" variant="flat">Registrarse</Button>
       <Modal
         isOpen={isOpen}

@@ -1,59 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { getClient } from "../lib/client.jsx";
-import { gql, useSubscription } from "@apollo/client";
-import {Card, CardHeader, CardBody, Image} from "@nextui-org/react";
+import { gql, useSubscription, useQuery } from "@apollo/client";
+import { Card, CardHeader, CardBody, Image } from "@nextui-org/react";
+
+const ALL_DOCTORS = gql`
+  query AllDoctors {
+    allDoctors {
+      name
+      lastName
+      specialty
+      atentionHours
+      atentionDays
+    }
+  }
+`;
+
+const DOCTOR_CREATED = gql`
+  subscription DoctorCreated {
+    doctorCreated {
+      name
+      lastName
+      specialty
+      atentionHours
+      atentionDays
+    }
+  }
+`;
 
 function Doctors() {
+  const { data: queryData, loading: queryLoading, error: queryError } = useQuery(ALL_DOCTORS);
+  const { data: subscriptionData } = useSubscription(DOCTOR_CREATED);
+  
   const [doctors, setDoctors] = useState([]);
-  // const DOCTOR_CREATED = gql`
-  //   subscription DoctorCreated {
-  //     doctorCreated{
-  //       name
-  //       lastName
-  //       specialty
-  //       atentionHours
-  //       atentionDays
-  //     }
-  //   }
-  // `
-
-  // const {data, loading} = useSubscription(
-  //   DOCTOR_CREATED,
-  //   {
-  //     onData: (data)=>{
-  //       console.log(data);
-  //     }
-  //   }
-  // )
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data } = await getClient().query({
-          query: gql`
-            query AllDoctors {
-              allDoctors {
-                name
-                lastName
-                specialty
-                atentionHours
-                atentionDays
-              }
-            }
-          `
-        });
-        setDoctors(data.allDoctors);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    if (queryData) {
+      setDoctors(queryData.allDoctors);
     }
-    fetchData();
-  }, []);
+  }, [queryData]);
+
+  useEffect(() => {
+    if (subscriptionData) {
+      setDoctors(prevDoctors => [...prevDoctors, subscriptionData.doctorCreated]);
+    }
+  }, [subscriptionData]);
+
+  if (queryLoading) return <p>Loading...</p>;
+  if (queryError) return <p>Error: {queryError.message}</p>;
 
   return (
     <div className='flex m-6 gap-4 h-96'>
-      {doctors.map(doctor => (
-        <Card className="py-4">
+      {doctors.map((doctor, index) => (
+        <Card key={index} className="py-4">
           <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
             <p className="text-tiny uppercase font-bold">{doctor.atentionHours}</p>
             <small className="text-default-500">{doctor.specialty}</small>
