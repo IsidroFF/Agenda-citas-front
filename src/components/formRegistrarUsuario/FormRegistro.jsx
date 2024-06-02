@@ -48,6 +48,12 @@ export default function FormRegistro() {
   };
 
   const handleAddUser = () => {
+    // Verificar que ningún campo sea una cadena vacía
+    if (!nombre.trim() || !correo.trim() || !contra.trim() || !edad.trim() || !genero.trim()) {
+      // Mostrar notificación de error si algún campo está vacío
+      notifError('error', 'Todos los campos son requeridos');
+      return;
+    }
     // Validar que la contraseña tenga al menos 6 caracteres
     if (contra.length < 6) {
       notifError('error', 'La contraseña debe tener al menos 6 caracteres');
@@ -61,12 +67,6 @@ export default function FormRegistro() {
       return;
     }
 
-    // Verificar que ningún campo sea una cadena vacía
-    if (!nombre.trim() || !correo.trim() || !contra.trim() || !edad.trim() || !genero.trim()) {
-      // Mostrar notificación de error si algún campo está vacío
-      notifError('error', 'Todos los campos son requeridos');
-      return;
-    }
     try {
       addUser({
         variables: {
