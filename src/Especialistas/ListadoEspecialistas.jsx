@@ -1,75 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import { getClient } from "../lib/client.jsx";
-import { gql, useSubscription } from "@apollo/client";
-import {Card, CardHeader, CardBody, Image} from "@nextui-org/react";
+import { gql, useSubscription, useQuery } from "@apollo/client";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip } from "@nextui-org/react";
+
+const ALL_DOCTORS = gql`
+  query AllDoctors {
+    allDoctors {
+      name
+      lastName
+      specialty
+      atentionHours
+      atentionDays
+    }
+  }
+`;
+
+const DOCTOR_CREATED = gql`
+  subscription DoctorCreated {
+    doctorCreated {
+      name
+      lastName
+      specialty
+      atentionHours
+      atentionDays
+    }
+  }
+`;
+
+const doctorColumns = [
+  { key: "fullName", label: "Nombre Completo" },
+  { key: "specialty", label: "Especialidad" },
+  { key: "atentionHours", label: "Horario de Atención" },
+  { key: "atentionDays", label: "Días de Atención" },
+];
 
 function Doctors() {
+  const { data: queryData, loading: queryLoading, error: queryError } = useQuery(ALL_DOCTORS);
+  const { data: subscriptionData } = useSubscription(DOCTOR_CREATED);
+  
   const [doctors, setDoctors] = useState([]);
-  const DOCTOR_CREATED = gql`
-    subscription DoctorCreated {
-      doctorCreated{
-        name
-        lastName
-        specialty
-        atentionHours
-        atentionDays
-      }
-    }
-  `
-
-  const {data, loading} = useSubscription(
-    DOCTOR_CREATED,
-    {
-      onData: (data)=>{
-        console.log(data);
-      }
-    }
-  )
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data } = await getClient().query({
-          query: gql`
-            query AllDoctors {
-              allDoctors {
-                name
-                lastName
-                specialty
-                atentionHours
-                atentionDays
-              }
-            }
-          `
-        });
-        setDoctors(data.allDoctors);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    if (queryData) {
+      // Combinar nombre y apellido
+      const combinedDoctors = queryData.allDoctors.map(doctor => ({
+        ...doctor,
+        fullName: `${doctor.name} ${doctor.lastName}`
+      }));
+      setDoctors(combinedDoctors);
     }
-    fetchData();
-  }, []);
+  }, [queryData]);
+
+  useEffect(() => {
+    if (subscriptionData) {
+      // Combinar nombre y apellido para nuevos doctores
+      const newDoctor = {
+        ...subscriptionData.doctorCreated,
+        fullName: `${subscriptionData.doctorCreated.name} ${subscriptionData.doctorCreated.lastName}`
+      };
+      setDoctors(prevDoctors => [...prevDoctors, newDoctor]);
+    }
+  }, [subscriptionData]);
+
+  if (queryLoading) return <p>Loading...</p>;
+  if (queryError) return <p>Error: {queryError.message}</p>;
 
   return (
-    <div className='flex m-6 gap-4 h-96'>
-      {doctors.map(doctor => (
-        <Card className="py-4">
-          <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-            <p className="text-tiny uppercase font-bold">{doctor.atentionHours}</p>
-            <small className="text-default-500">{doctor.specialty}</small>
-            <h4 className="font-bold text-large">{doctor.name + ' ' + doctor.lastName}</h4>
-          </CardHeader>
-          <CardBody className="overflow-visible py-2">
-            <Image
-              alt="Card background"
-              className="object-cover rounded-xl"
-              src="/generic profile doctor.png"
-              width={200}
-            />
-          </CardBody>
-        </Card>
-      ))}
-    </div>
+    <Table aria-label="Table of doctors" >
+      <TableHeader columns={doctorColumns}>
+        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+      </TableHeader>
+      <TableBody items={doctors}>
+        {(item) => (
+          <TableRow key={item.fullName}>
+            {(columnKey) => {
+              if (columnKey === "atentionDays") {
+                return (
+                  <TableCell>
+                    {item[columnKey].map((day, index) => (
+                      <Chip key={index} variant='flat' className='mx-1'>{day}</Chip>
+                    ))}
+                  </TableCell>
+                );
+              } else {
+                return <TableCell>{item[columnKey]}</TableCell>;
+              }
+            }}
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 
