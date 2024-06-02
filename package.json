@@ -12,7 +12,9 @@
   "dependencies": {
     "@apollo/client": "^3.10.4",
     "@apollo/react-hooks": "^4.0.0",
+    "@nextui-org/chip": "^2.0.29",
     "@nextui-org/react": "^2.3.6",
+    "@nextui-org/table": "^2.0.35",
     "antd": "^5.17.4",
     "apollo-cache-inmemory": "^1.6.6",
     "framer-motion": "^11.2.6",

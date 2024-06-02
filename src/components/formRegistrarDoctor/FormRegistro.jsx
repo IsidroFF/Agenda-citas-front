@@ -2,8 +2,25 @@ import React from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Input, Link, Select, SelectItem } from "@nextui-org/react";
 import { MailIcon } from '../icons/MailIcon.jsx';
 import { Name } from "../icons/Name.jsx";
-import { getClient } from "../../lib/client.jsx";
-import { gql } from "@apollo/client";
+import { notification } from "antd";
+import { gql, useMutation } from "@apollo/client";
+
+const ADD_DOCTOR = gql`
+    mutation Mutation($name: String!, $lastName: String!, $gender: String!, $phone: String!, $email: String!, $specialty: String!, $professionalId: String!, $office: String!, $atentionDays: [String!]!, $atentionHours: String!) {
+      addDoctor(name: $name, lastName: $lastName, gender: $gender, phone: $phone, email: $email, specialty: $specialty, professionalID: $professionalId, office: $office, atentionDays: $atentionDays, atentionHours: $atentionHours) {
+        name
+        lastName
+        atentionDays
+        atentionHours
+        email
+        gender
+        office
+        phone
+        professionalID
+        specialty
+      }
+    }
+  `
 
 export default function FormRegistro() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -17,41 +34,62 @@ export default function FormRegistro() {
   const [diasAtencion, setDiasAtencion] = React.useState(new Set([]));
   const [horasAtencion, setHorasAtencion] = React.useState("");
   const [genero, setGenero] = React.useState("");
+  const [addDoctor, { data, error }] = useMutation(ADD_DOCTOR);
+  const [api, contextHolder] = notification.useNotification();
 
+  const notifError = (type, content) => {
+    api[type]({
+      message: content,
+    });
+  };
+
+  const resetForm = () => {
+    // Restablecer todas las variables de estado a su estado inicial
+    setNombre("");
+    setApellido("");
+    setCorreo("");
+    setTelefono("");
+    setEspecialidad("");
+    setIdProfesional("");
+    setConsultorio("");
+    setDiasAtencion(new Set([]));
+    setHorasAtencion("");
+    setGenero("");
+  };
   const handleSelectionChange = (e) => {
     setGenero(e.target.value);
   };
-
+  const handleSpecialtyChange = (e) => {
+    setEspecialidad(e.target.value);
+  };
+  
   const handleDiasAtencionChange = (e) => {
     setDiasAtencion(new Set(e.target.value.split(",")));
   };
-  const validateFields = () => {
-    return nombre && apellido && correo && telefono && especialidad && idProfesional && consultorio && diasAtencion.size > 1 && horasAtencion && genero;
-  };
 
-  const handleAddDoctor = async () => {
-    if (!validateFields()) {
-      alert("Por favor, complete todos los campos requeridos.");
+  const handleAddDoctor = () => {
+    // Verificar que ningún campo sea una cadena vacía
+    if (!nombre.trim() || !apellido.trim() || !correo.trim() || !telefono.trim() || !especialidad.trim() || !idProfesional.trim() || !consultorio.trim() || !diasAtencion.size > 1 || !horasAtencion.trim() || !genero.trim()) {
+      // Mostrar notificación de error si algún campo está vacío
+      notifError('error', 'Todos los campos son requeridos');
+      return;
+    }
+
+    // Validar el formato del teléfono
+    const phoneRegex = /^[0-9]{10}$/; // número de teléfono de 10 dígitos
+    if (!phoneRegex.test(telefono)) {
+      notifError('error', 'El número de teléfono no es válido. ');
+      return;
+    }
+
+    // Validar el formato del correo electrónico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo)) {
+      notifError('error', 'El formato del correo electrónico no es válido.');
       return;
     }
     try {
-      const { data } = await getClient().mutate({
-        mutation: gql`
-          mutation Mutation($name: String!, $lastName: String!, $gender: String!, $phone: String!, $email: String!, $specialty: String!, $professionalId: String!, $office: String!, $atentionDays: [String!]!, $atentionHours: String!) {
-            addDoctor(name: $name, lastName: $lastName, gender: $gender, phone: $phone, email: $email, specialty: $specialty, professionalID: $professionalId, office: $office, atentionDays: $atentionDays, atentionHours: $atentionHours) {
-              name
-              lastName
-              atentionDays
-              atentionHours
-              email
-              gender
-              office
-              phone
-              professionalID
-              specialty
-            }
-          }
-        `,
+      addDoctor({
         variables: {
           name: nombre,
           lastName: apellido,
@@ -64,17 +102,18 @@ export default function FormRegistro() {
           atentionDays: Array.from(diasAtencion),
           atentionHours: horasAtencion,
         }
-      });
-      //console.log('Doctor added:', data.addDoctor);
+      })
+      resetForm();
+      console.log('Doctor added');
       onOpenChange(false);
-    } catch (error) {
-      console.log(Array.from(diasAtencion));
-      console.error('Error adding doctor:', error);
+    } catch (e) {
+      //console.error('Error adding doctor:', e);
     }
   };
 
   return (
     <>
+      {contextHolder}
       <Button onPress={onOpen} color="primary" variant="flat">Añadir Doctor</Button>
       <Modal
         isOpen={isOpen}
@@ -125,15 +164,25 @@ export default function FormRegistro() {
                   isRequired
                   value={telefono}
                   onValueChange={setTelefono}
+                  maxLength={10}
                 />
-                <Input
+                <Select
                   label="Especialidad"
-                  placeholder="Ingresa tu especialidad"
                   variant="bordered"
                   isRequired
-                  value={especialidad}
-                  onValueChange={setEspecialidad}
-                />
+                  onChange={handleSpecialtyChange}
+                >
+                  <SelectItem key='Ortodoncia' value='Ortodoncia'>Ortodoncia</SelectItem>
+                  <SelectItem key='Endodoncia' value='Endodoncia'>Endodoncia</SelectItem>
+                  <SelectItem key='Periodoncia' value='Periodoncia'>Periodoncia</SelectItem>
+                  <SelectItem key='Cirugía Oral y Maxilofacial' value='Cirugía Oral y Maxilofacial'>Cirugía Oral y Maxilofacial</SelectItem>
+                  <SelectItem key='Odontopediatría' value='Odontopediatría'>Odontopediatría</SelectItem>
+                  <SelectItem key='Prostodoncia' value='Prostodoncia'>Prostodoncia</SelectItem>
+                  <SelectItem key='Odontología Estética' value='Odontología Estética'>Odontología Estética</SelectItem>
+                  <SelectItem key='Odontología Preventiva y Comunitaria' value='Odontología Preventiva y Comunitaria'>Odontología Preventiva y Comunitaria</SelectItem>
+                  <SelectItem key='Patología Bucal y Maxilofacial' value='Patología Bucal y Maxilofacial'>Patología Bucal y Maxilofacial</SelectItem>
+                </Select>
+
                 <Input
                   label="ID Profesional"
                   placeholder="Ingresa tu ID profesional"
