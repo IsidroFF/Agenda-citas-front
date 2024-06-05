@@ -19,7 +19,7 @@ const ADD_USER = gql`
     }
   `
 
-export default function FormRegistro() {
+export default function FormRegistroUser() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [nombre, setNombre] = React.useState("");
   const [correo, setCorreo] = React.useState("");

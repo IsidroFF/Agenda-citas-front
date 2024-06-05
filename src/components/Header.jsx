@@ -4,14 +4,25 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
+  Dropdown, 
+  DropdownTrigger, 
+  DropdownMenu, 
+  DropdownItem, 
+  Avatar
 } from "@nextui-org/react";
 import { Link, BrowserRouter, Routes, Route } from "react-router-dom";
-import { DentalLifeLogo } from "./DentalLifeLogo.jsx";
-import FormRegistro from "./formRegistrarUsuario/FormRegistro.jsx";
+import { DentalLifeLogo } from "./icons/DentalLifeLogo.jsx";
+import FormRegistroUser from "./forms/FormRegistroUser.jsx";
+import FormIniciarSesion from "./forms/FormIniciarSesion.jsx"
 import Inicio from "./Inicio.jsx"
 import Especialistas from "../Especialistas/Especialistas.jsx";
+import { useAuth } from '../AuthContext.jsx';
+import AgendarCita from "../AgendarCita.jsx"
+import Dashboard from "./Dashboard.jsx"
 
 export default function NavBar() {
+  const { isAuthenticated, userEmail, logout } = useAuth();
+
   return (
     <BrowserRouter>
       <Navbar>
@@ -35,21 +46,51 @@ export default function NavBar() {
             </Link>
           </NavbarItem>
         </NavbarContent>
-        <NavbarContent justify="end">
+
+        {isAuthenticated ? (<NavbarContent justify="end">
+        <div className="flex items-center gap-4">
+          <Dropdown placement="bottom-center">
+            <DropdownTrigger>
+              <Avatar
+                showFallback
+                as="button"
+                className="transition-transform"
+              />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Profile Actions" variant="flat">
+              <DropdownItem key="profile" className="h-14 gap-2">
+                <p className="font-semibold">Bienvenid@</p>
+                <p className="font-semibold">{userEmail}</p>
+              </DropdownItem>
+              <DropdownItem key="config">
+                Configuracion
+              </DropdownItem>
+              <DropdownItem key="citas">
+                Mis citas
+              </DropdownItem>
+              <DropdownItem key="logout" className="text-danger" color="danger" onPress={logout}>
+                Cerrar sesión
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+
+        </div></NavbarContent>) : (<NavbarContent justify="end">
           <NavbarItem className="hidden lg:flex">
-            <Link to="#">Iniciar Sesión</Link>
+            <FormIniciarSesion />
           </NavbarItem>
           <NavbarItem>
-            <FormRegistro />
+            <FormRegistroUser />
           </NavbarItem>
-        </NavbarContent>
+        </NavbarContent>)}
       </Navbar>
 
       <Routes>
-        <Route path="/" element={<Inicio/>}/>
-        <Route path="/especialistas" element={<Especialistas/>}/>
-        <Route path="/acerca" element={<>Acerca deeee</>}/>
-          
+        <Route path="/" element={<Inicio />} />
+        <Route path="/especialistas" element={<Especialistas />} />
+        <Route path="/acerca" element={<>Acerca deeee</>} />
+        <Route path="/acerca" element={<>Acerca deeee</>} />
+        <Route path="/agendar-cita" element={<AgendarCita />} />
+        <Route path="/admin" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   );

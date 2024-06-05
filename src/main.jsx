@@ -10,6 +10,7 @@ import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider } from '@apollo/react-hooks'
+import { AuthProvider } from './AuthContext.jsx';
 
 //Crear httpLink
 const httpLink = new HttpLink({
@@ -51,7 +52,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <ApolloProvider client={client}>
     <React.StrictMode>
       <NextUIProvider>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </NextUIProvider>
     </React.StrictMode>
   </ApolloProvider>,

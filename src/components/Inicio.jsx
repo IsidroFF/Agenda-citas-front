@@ -3,15 +3,14 @@ import {
   Card, CardHeader, CardBody, Image
 } from "@nextui-org/react";
 import "../App.css"
-import Users from "../Users.jsx";
 
 export default function Inicio() {
   return (
     <>
       <section id="fondo">
         <div className="w-1/2 p-4 flex flex-col -space-y-80">
-          <h1 className="text-8xl py-60 font-bold pl-16">Lorem ipsum dolor sit.</h1>
-          <h2 className="text-2xl py-40 pl-16 w-4/5">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Aperiam aut culpa, sed perspiciatis atque ipsum illum? Dignissimos doloremque fugiat eaque itaque, modi quod at suscipit illo, impedit, praesentium minus cupiditate?</h2>
+          <h1 className="text-8xl py-60 font-bold pl-16">Simplifica el proceso</h1>
+          <h2 className="text-2xl py-40 pl-16 w-4/5">Agenda tu cita con el especialista que consideres mas apropiado. Compara tus tiempos y organizate comodamente desde donde estes. Puedes agendar tu cita con nosotros. Somos lideres en lo que hacemos. ¡Ven y Conocenos! Te llevarás una buena experiencia.</h2>
         </div>
       </section>
       <section className="h-screen block">
@@ -88,7 +87,7 @@ export default function Inicio() {
         </section>
       </section>
 
-      <Users />
     </>
   );
 }
+

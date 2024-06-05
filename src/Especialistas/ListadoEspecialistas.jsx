@@ -1,6 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
+import Slider from 'react-slick';
 import { gql, useSubscription, useQuery } from "@apollo/client";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip } from "@nextui-org/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
+import { useNavigate } from "react-router-dom";
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
+import './ListadoEspecialistas.css'; // Asegúrate de crear este archivo para los estilos personalizados
 
 const ALL_DOCTORS = gql`
   query AllDoctors {
@@ -26,22 +32,17 @@ const DOCTOR_CREATED = gql`
   }
 `;
 
-const doctorColumns = [
-  { key: "fullName", label: "Nombre Completo" },
-  { key: "specialty", label: "Especialidad" },
-  { key: "atentionHours", label: "Horario de Atención" },
-  { key: "atentionDays", label: "Días de Atención" },
-];
-
 function Doctors() {
   const { data: queryData, loading: queryLoading, error: queryError } = useQuery(ALL_DOCTORS);
   const { data: subscriptionData } = useSubscription(DOCTOR_CREATED);
-  
   const [doctors, setDoctors] = useState([]);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [visible, setVisible] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (queryData) {
-      // Combinar nombre y apellido
       const combinedDoctors = queryData.allDoctors.map(doctor => ({
         ...doctor,
         fullName: `${doctor.name} ${doctor.lastName}`
@@ -52,7 +53,6 @@ function Doctors() {
 
   useEffect(() => {
     if (subscriptionData) {
-      // Combinar nombre y apellido para nuevos doctores
       const newDoctor = {
         ...subscriptionData.doctorCreated,
         fullName: `${subscriptionData.doctorCreated.name} ${subscriptionData.doctorCreated.lastName}`
@@ -60,36 +60,100 @@ function Doctors() {
       setDoctors(prevDoctors => [...prevDoctors, newDoctor]);
     }
   }, [subscriptionData]);
-
+  
   if (queryLoading) return <p>Loading...</p>;
   if (queryError) return <p>Error: {queryError.message}</p>;
 
+  const handleCardClick = (doctor) => {
+    setSelectedDoctor(doctor);
+    setVisible(true);
+  };
+
+  const handleConfirm = () => {
+    setVisible(false);
+    navigate("/agendar-cita");
+  };
+
+  const closeHandler = () => {
+    setVisible(false);
+  };
+
+  const settings = {
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 2,
+    slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2,
+          infinite: true,
+          dots: true
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
+  };
+
   return (
-    <Table aria-label="Table of doctors" >
-      <TableHeader columns={doctorColumns}>
-        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
-      </TableHeader>
-      <TableBody items={doctors}>
-        {(item) => (
-          <TableRow key={item.fullName}>
-            {(columnKey) => {
-              if (columnKey === "atentionDays") {
-                return (
-                  <TableCell>
-                    {item[columnKey].map((day, index) => (
-                      <Chip key={index} variant='flat' className='mx-1'>{day}</Chip>
-                    ))}
-                  </TableCell>
-                );
-              } else {
-                return <TableCell>{item[columnKey]}</TableCell>;
-              }
-            }}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <div className="carousel-container">
+      <Slider {...settings}>
+        {doctors.map((doctor, index) => (
+          <div key={index} className="doctor-card" onClick={() => handleCardClick(doctor)}>
+            <h3>{doctor.fullName}</h3>
+            <p>{doctor.specialty}</p>
+            <p>{doctor.atentionHours}</p>
+            <div className="atention-days">
+              {doctor.atentionDays.map((day, idx) => (
+                <span key={idx} className="day-chip">{day}</span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </Slider>
+      <Modal
+        isOpen={visible}
+        onOpenChange={onOpenChange}
+        placement="top-center"
+      >
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Confirmación</ModalHeader>
+              <ModalBody>
+              Agendar cita con {selectedDoctor ? selectedDoctor.fullName : ""}
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="flat" onPress={closeHandler}>
+                  Cancelar
+                </Button>
+                <Button color="primary" onPress={handleConfirm}>
+                  Aceptar 
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      <div className="footer">
+        <p>Contáctanos: info@clinicamedica.com</p>
+        <p>Teléfono: +123 456 7890</p>
+        <p>Dirección: Calle Falsa 123, Ciudad, País</p>
+        <p>© 2024 Clínica Médica. Todos los derechos reservados. Equipo Cholo</p>
+      </div>
+    </div>
   );
 }
 
 export default Doctors;
+
+      

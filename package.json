@@ -12,15 +12,20 @@
   "dependencies": {
     "@apollo/client": "^3.10.4",
     "@apollo/react-hooks": "^4.0.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
     "@nextui-org/chip": "^2.0.29",
     "@nextui-org/react": "^2.3.6",
     "@nextui-org/table": "^2.0.35",
     "antd": "^5.17.4",
     "apollo-cache-inmemory": "^1.6.6",
+    "dayjs": "^1.11.11",
     "framer-motion": "^11.2.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.1",
+    "react-slick": "^0.30.2",
+    "slick-carousel": "^1.8.1",
     "subscriptions-transport-ws": "^0.11.0"
   },
   "devDependencies": {

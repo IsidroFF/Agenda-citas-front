@@ -2,9 +2,10 @@ import React from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Input, Link, Select, SelectItem } from "@nextui-org/react";
 import { MailIcon } from '../icons/MailIcon.jsx';
 import { Name } from "../icons/Name.jsx";
-import { notification } from "antd";
+import { notification, TimePicker } from "antd";
 import { gql, useMutation } from "@apollo/client";
 
+const { RangePicker } = TimePicker;
 const ADD_DOCTOR = gql`
     mutation Mutation($name: String!, $lastName: String!, $gender: String!, $phone: String!, $email: String!, $specialty: String!, $professionalId: String!, $office: String!, $atentionDays: [String!]!, $atentionHours: String!) {
       addDoctor(name: $name, lastName: $lastName, gender: $gender, phone: $phone, email: $email, specialty: $specialty, professionalID: $professionalId, office: $office, atentionDays: $atentionDays, atentionHours: $atentionHours) {
@@ -32,7 +33,7 @@ export default function FormRegistro() {
   const [idProfesional, setIdProfesional] = React.useState("");
   const [consultorio, setConsultorio] = React.useState("");
   const [diasAtencion, setDiasAtencion] = React.useState(new Set([]));
-  const [horasAtencion, setHorasAtencion] = React.useState("");
+  const [horasAtencion, setHorasAtencion] = React.useState(["", ""]);
   const [genero, setGenero] = React.useState("");
   const [addDoctor, { data, error }] = useMutation(ADD_DOCTOR);
   const [api, contextHolder] = notification.useNotification();
@@ -53,7 +54,7 @@ export default function FormRegistro() {
     setIdProfesional("");
     setConsultorio("");
     setDiasAtencion(new Set([]));
-    setHorasAtencion("");
+    setHorasAtencion(["", ""]);
     setGenero("");
   };
   const handleSelectionChange = (e) => {
@@ -62,16 +63,32 @@ export default function FormRegistro() {
   const handleSpecialtyChange = (e) => {
     setEspecialidad(e.target.value);
   };
-  
+
   const handleDiasAtencionChange = (e) => {
     setDiasAtencion(new Set(e.target.value.split(",")));
   };
 
+  const handleTimeChange = (time, timeString) => {
+    setHorasAtencion(timeString);
+  };
+
   const handleAddDoctor = () => {
     // Verificar que ningún campo sea una cadena vacía
-    if (!nombre.trim() || !apellido.trim() || !correo.trim() || !telefono.trim() || !especialidad.trim() || !idProfesional.trim() || !consultorio.trim() || !diasAtencion.size > 1 || !horasAtencion.trim() || !genero.trim()) {
+    if (
+      !nombre.trim() ||
+      !apellido.trim() ||
+      !correo.trim() ||
+      !telefono.trim() ||
+      !especialidad.trim() ||
+      !idProfesional.trim() ||
+      !consultorio.trim() ||
+      diasAtencion.size < 1 ||
+      !horasAtencion[0] ||
+      !horasAtencion[1] ||
+      !genero.trim()
+    ) {
       // Mostrar notificación de error si algún campo está vacío
-      notifError('error', 'Todos los campos son requeridos');
+      notifError("error", "Todos los campos son requeridos");
       return;
     }
 
@@ -100,7 +117,7 @@ export default function FormRegistro() {
           professionalId: idProfesional,
           office: consultorio,
           atentionDays: Array.from(diasAtencion),
-          atentionHours: horasAtencion,
+          atentionHours: horasAtencion.join(" - "),
         }
       })
       resetForm();
@@ -119,6 +136,7 @@ export default function FormRegistro() {
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         placement="top-center"
+        isDismissable={false}
       >
         <ModalContent>
           {(onClose) => (
@@ -215,13 +233,11 @@ export default function FormRegistro() {
                   <SelectItem key='Sábado' value='Sábado'>Sábado</SelectItem>
                   <SelectItem key='Domingo' value='Domingo'>Domingo</SelectItem>
                 </Select>
-                <Input
-                  label="Horas de atención"
-                  placeholder="Ingresa las horas de atención"
-                  variant="bordered"
-                  isRequired
-                  value={horasAtencion}
-                  onValueChange={setHorasAtencion}
+                <RangePicker
+                  placeholder={['Hora inicio', 'Hora fin']}
+                  format="HH:mm"
+                  onChange={handleTimeChange}
+                  style={{ width: '100%' }}
                 />
                 <Select
                   label="Género"
