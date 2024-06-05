@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { gql, useSubscription, useQuery, useMutation } from "@apollo/client";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Chip, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react";
-import { VerticalDotsIcon } from './icons/VerticalDotsIcon.jsx'; // Asegúrate de tener estos iconos
-import { PlusIcon } from "./icons/PlusIcon.jsx"; // Asegúrate de tener estos iconos
+import { VerticalDotsIcon } from './icons/VerticalDotsIcon.jsx';
+import { PlusIcon } from "./icons/PlusIcon.jsx";
 import FormRegistroDoc from './forms/FormRegistroDoc.jsx';
+import FormEditarDoc from './forms/FormEditarDoc.jsx';
 
 const ALL_DOCTORS = gql`
   query AllDoctors {
@@ -68,6 +69,7 @@ function Doctors() {
 
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [editDoctor, setEditDoctor] = useState(null);
 
   useEffect(() => {
     if (queryData) {
@@ -130,18 +132,17 @@ function Doctors() {
                   } else if (columnKey === "actions") {
                     return (
                       <TableCell>
-                        <Dropdown aria-label="drop of doctors">
-                          <DropdownTrigger>
-                            <Button isIconOnly size="sm" variant="light">
+                        <Dropdown aria-label="Actions for doctor">
+                          <DropdownTrigger aria-label="Actions menu">
+                            <Button isIconOnly size="sm" variant="light" aria-label="Actions button">
                               <VerticalDotsIcon className="text-default-300" />
                             </Button>
                           </DropdownTrigger>
-                          <DropdownMenu>
-                            <DropdownItem aria-label="itrtm of doctors" onClick={() => {
-                              setSelectedDoctor(item);
-                              console.log(item.id);
+                          <DropdownMenu aria-label="Actions menu options">
+                            <DropdownItem aria-label="Edit doctor" onClick={() => {
+                              setEditDoctor(item);
                             }}>Editar</DropdownItem>
-                            <DropdownItem aria-label="item of doctors" color="error" onPress={() => handleDeleteDoctor(item.id)}>Eliminar</DropdownItem>
+                            <DropdownItem aria-label="Delete doctor" color="error" onPress={() => handleDeleteDoctor(item.id)}>Eliminar</DropdownItem>
                           </DropdownMenu>
                         </Dropdown>
                       </TableCell>
@@ -154,7 +155,8 @@ function Doctors() {
             )}
           </TableBody>
         </Table>
-        <div className='mt-12 '><FormRegistroDoc /></div>
+        <div className='mt-12'><FormRegistroDoc /></div>
+        {editDoctor && <FormEditarDoc doctor={editDoctor} onClose={() => setEditDoctor(null)} />}
       </div>
     </div>
   );
