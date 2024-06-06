@@ -14,12 +14,12 @@ import { AuthProvider } from './AuthContext.jsx';
 
 //Crear httpLink
 const httpLink = new HttpLink({
-  uri: 'http://localhost:4000/graphql'
+  uri: 'https://agenda-citas-y0io.onrender.com/graphql'
 });
 
 //Crear un link de websocket
 const wsLink = new WebSocketLink({
-  uri: 'http://localhost:4000/graphql',
+  uri: 'https://agenda-citas-y0io.onrender.com/graphql',
   options: {
     reconnect: true
   }
